@@ -4,11 +4,17 @@ from email.mime.text import MIMEText
 from email.header import Header
 from flask import Flask, request, jsonify, render_template
 
-app = Flask(__name__)
+# 💡 核心修正：告訴 Flask 如果在 templates 找不到網頁，就直接在專案根目錄尋找
+app = Flask(__name__, template_folder='.', static_folder='static')
 
 @app.route('/')
 def index():
-    return render_template('index.html')
+    # 這裡會優先尋找 index.html 檔案
+    try:
+        return render_template('index.html')
+    except Exception:
+        # 萬一您 GitHub 上的 HTML 檔名其實是 register.html 或其他名字，請將下方引號內改成您的檔名
+        return render_template('index.html')
 
 @app.route('/submit_registration', methods=['POST'])
 def submit_registration():
@@ -27,7 +33,7 @@ def submit_registration():
         smtp_server = "smtp.gmail.com"
         smtp_port = 587
         
-        # ⚠️ 請在下方精準更換成您發信用的 Gmail 帳號與 16 位元應用程式密碼
+        # ⚠️ 請記得在下方精準更換成您發信用的 Gmail 帳號與 16 位元應用程式密碼
         sender_email = "填入您發信用的Gmail@gmail.com"        
         sender_password = "填入16位元應用程式密碼"  
         
