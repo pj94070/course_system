@@ -25,19 +25,17 @@ def submit_registration():
     # 本地 Log 紀錄
     print(f"【成功接收報名】學員：{name} ({gender}) | 電話：{phone} | 信箱：{email} | 項目：{selected_course}")
     
-    # ======= 🚀 核心：自動寄送 Email 給唯修科技客服 =======
+    # ======= 🚀 核心：自動寄送 Email 給唯修科技客服（587 加強版） =======
     try:
+        # 1. 將伺服器埠口改為 587
         smtp_server = "smtp.gmail.com"
-        smtp_port = 465
+        smtp_port = 587
         
-        # ⚠️ 請精準替換下方兩行您的發信專用 Gmail 資訊
-        sender_email = "pj94070@gmail.com"        
-        sender_password = "Sebastian900506$$AA"  # 格式如: abcd efgh ijkl mnop
+        sender_email = "填入您發信用的Gmail@gmail.com"        
+        sender_password = "填入16位元應用程式密碼"  # 格式如: abcd efgh ijkl mnop
         
-        # 🎯 收件人：唯修科技客服信箱
         receiver_email = "service@weixiu.com.tw" 
         
-        # 郵件內容
         mail_content = f"""
         您好，唯修科技管理員：
         
@@ -61,13 +59,18 @@ def submit_registration():
         message['To'] = Header("唯修科技客服 <service@weixiu.com.tw>", 'utf-8')
         message['Subject'] = Header(f"🔔 新增報名通知：{name} 同學已報名 {selected_course}", 'utf-8')
         
-        with smtplib.SMTP_SSL(smtp_server, smtp_port) as server:
+        # 2. 改用標準 SMTP 並加上 timeout=10 避免網頁死當，隨後啟動 TLS 安全加密
+        print("【系統通知】正在連線至郵件伺服器...")
+        with smtplib.SMTP(smtp_server, smtp_port, timeout=10) as server:
+            server.starttls()  # 關鍵：啟動 TLS 加密通道
             server.login(sender_email, sender_password)
             server.sendmail(sender_email, [receiver_email], message.as_string())
         print("【系統通知】公司客服郵件通知已成功寄出！")
         
     except Exception as e:
+        # 如果真的又失敗，會印出具體錯誤，但絕對不會再讓網頁 Timeout 崩潰
         print(f"❌ 【系統錯誤】郵件寄送失敗，錯誤原因: {str(e)}")
+    # ====================================================
     # ====================================================
 
     return jsonify({"status": "success", "student_name": name})
