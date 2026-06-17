@@ -9,7 +9,7 @@ app = Flask(__name__)
 # 如果您有其他路由（例如首頁 /），請保留在您的檔案上方
 @app.route('/')
 def index():
-    return "唯修科技 3D列印課程報名系統已成功運行！"
+    return render_template('index.html')
 
 @app.route('/submit_registration', methods=['POST'])
 def submit_registration():
