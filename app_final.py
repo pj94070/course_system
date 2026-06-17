@@ -7,9 +7,10 @@ from flask import Flask, request, jsonify, render_template
 app = Flask(__name__)
 
 # 如果您有其他路由（例如首頁 /），請保留在您的檔案上方
-@app.route('/')
-def index():
-    return render_template('index.html')
+```python
+   @app.route('/')
+   def index():
+       return render_template('index.html')
 
 @app.route('/submit_registration', methods=['POST'])
 def submit_registration():
