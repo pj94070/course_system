@@ -225,8 +225,7 @@ def submit_registration():
 
 請負責同仁儘速與學員取得聯繫，謝謝！"""
 
-    # 🚀 使用 Formspree 公開網頁轉寄網址（完全免卡、免註冊、走 443 Port、完美通關）
-    # 目標信箱直接綁定在轉寄節點上
+    # 🚀 使用 Formspree 公開網頁轉寄網址（完美通關）
     url = "https://formspree.io/f/mnnqgqov" 
     
     payload = {
@@ -238,14 +237,11 @@ def submit_registration():
     
     try:
         print("▶️ [HTTPS Forwarder] 正在透過 443 網頁通訊埠轉寄表單...")
-        # 這是最普通的網頁傳輸，Render 防火牆 100% 允許通過
         response = requests.post(url, data=payload, timeout=10)
-        
         if response.status_code == 200:
             print("==== 🎉 【轉寄成功！報名表單已成功投遞至 pj94070@gmail.com】 ====")
         else:
             print(f"❌ 轉寄站回應狀態碼: {response.status_code}")
-            
     except Exception as e:
         print(f"❌ 網路傳輸異常: {str(e)}")
 
