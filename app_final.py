@@ -1,5 +1,7 @@
 import os
-import requests
+import urllib.request
+import urllib.parse
+import base64
 from flask import Flask, request
 
 app = Flask(__name__)
@@ -215,7 +217,7 @@ def submit_registration():
     
     print(f"【新報名】學員：{name} | 電話：{phone} | 信箱：{email} | 課程：{selected_course}")
     
-    # 🚀 搭配 requirements.txt 後，即可在雲端使用標準 requests 模組穩定發信
+    # 🔒 徹底移除外來套件呼叫，100% 只用內建 urllib 函式庫發信
     try:
         api_url = "https://api.mailgun.net/v3/sandboxde876d21396b4bf09c058778f3cc3b0c.mailgun.org/messages"
         api_key = "key-86db49de48123da6c87157834571ab3d"
@@ -234,23 +236,26 @@ def submit_registration():
 
 請負責同仁儘速與學員取得聯繫，謝謝！"""
 
-        response = requests.post(
-            api_url,
-            auth=("api", api_key),
-            data={
-                "from": "唯修科技自動報名系統 <mailgun@sandboxde876d21396b4bf09c058778f3cc3b0c.mailgun.org>",
-                "to": "service@weixiu.com.tw",
-                "subject": f"🔔 官網新學員報名通知：{name} 同學已報名 {selected_course}",
-                "text": mail_text
-            },
-            timeout=10
-        )
+        payload = {
+            "from": "唯修科技自動報名系統 <mailgun@sandboxde876d21396b4bf09c058778f3cc3b0c.mailgun.org>",
+            "to": "service@weixiu.com.tw",
+            "subject": f"🔔 官網新學員報名通知：{name} 同學已報名 {selected_course}",
+            "text": mail_text
+        }
         
-        if response.status_code == 200:
-            print("==== 🎉 【發信成功】已成功送達郵件！ ====")
-            
+        data_encoded = urllib.parse.urlencode(payload).encode('utf-8')
+        req = urllib.request.Request(api_url, data=data_encoded, method='POST')
+        
+        auth_str = f"api:{api_key}"
+        auth_b64 = base64.b64encode(auth_str.encode('utf-8')).decode('utf-8')
+        req.add_header('Authorization', f'Basic {auth_b64}')
+        
+        with urllib.request.urlopen(req, timeout=10) as response:
+            if response.getcode() == 200:
+                print("==== 🎉 【發信成功】已成功送達郵件！ ====")
+                
     except Exception as e:
-        print(f"❌ 傳輸失敗原因: {str(e)}")
+        print(f"❌ 傳輸異常: {str(e)}")
 
     return f"""
     <script>
