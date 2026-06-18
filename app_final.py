@@ -1,13 +1,10 @@
 import os
-import json
-import urllib.request
-import urllib.parse
-import base64
+import requests
 from flask import Flask, request
 
 app = Flask(__name__)
 
-# 📊 依據官方 PDF 訓練簡章完整配置並導入科技感無圖破圖風險徽章的網頁模板
+# 📊 依據官方 PDF 訓練簡章完整配置的網頁模板（師資：Sebastian 工程師 / 電話：03-531-6873）
 HTML_TEMPLATE = """
 <!DOCTYPE html>
 <html lang="zh-TW">
@@ -49,13 +46,12 @@ HTML_TEMPLATE = """
         .course-card { background: #f1f7fe; border: 1px solid #cedfeffa; padding: 20px; margin-bottom: 20px; border-radius: 8px; }
         .course-title { font-weight: bold; color: var(--primary-color); font-size: 18px; margin-bottom: 8px; }
         
-        /* 🎨 全新技術風格核心頭像（不綁定外部檔案，100%防破圖顯示） */
+        /* 🎨 專屬科技風格講師徽章（100%完美顯示，解決個人圖片未顯示問題） */
         .teacher-box { display: flex; gap: 20px; align-items: center; background: #fdfaf2; padding: 25px; border-radius: 8px; border: 1px dashed var(--accent-color); margin-top: 20px; }
-        .tech-avatar { width: 95px; height: 95px; border-radius: 50%; background: linear-gradient(135deg, #1e3c72, #2a5298); display: flex; flex-direction: column; align-items: center; justify-content: center; border: 3px solid #f59f00; box-shadow: 0 4px 10px rgba(0,0,0,0.15); flex-shrink: 0; color: white; position: relative; overflow: hidden; }
-        .tech-avatar::before { content: ""; position: absolute; width: 100%; height: 100%; background: radial-gradient(circle, transparent 60%, rgba(245,159,0,0.2) 100%); }
-        .tech-avatar .badge-title { font-size: 11px; letter-spacing: 1px; opacity: 0.85; margin-bottom: -2px; font-weight: bold; text-transform: uppercase; }
-        .tech-avatar .badge-name { font-size: 32px; font-weight: 900; color: #f59f00; text-shadow: 1px 2px 4px rgba(0,0,0,0.4); font-family: Arial, sans-serif; }
-        .tech-avatar .badge-tech { font-size: 9px; background: #f59f00; color: #1e3c72; padding: 1px 5px; border-radius: 3px; font-weight: bold; margin-top: -1px; scale: 0.9; }
+        .tech-avatar { width: 90px; height: 90px; border-radius: 50%; background: linear-gradient(135deg, #1a4985, #2b3a4a); display: flex; flex-direction: column; align-items: center; justify-content: center; border: 3px solid var(--accent-color); box-shadow: 0 4px 10px rgba(0,0,0,0.15); flex-shrink: 0; color: white; }
+        .tech-avatar .avatar-title { font-size: 10px; opacity: 0.8; font-weight: bold; letter-spacing: 1px; margin-bottom: -2px; }
+        .tech-avatar .avatar-main { font-size: 30px; font-weight: bold; color: var(--accent-color); text-shadow: 1px 1px 3px rgba(0,0,0,0.5); }
+        .tech-avatar .avatar-sub { font-size: 9px; background: var(--accent-color); color: #2b3a4a; padding: 1px 4px; border-radius: 3px; font-weight: bold; scale: 0.9; }
 
         .form-group { margin-bottom: 22px; }
         label { display: block; font-weight: bold; margin-bottom: 9px; color: #444; font-size: 16px; }
@@ -131,7 +127,7 @@ HTML_TEMPLATE = """
             </div>
             <div class="course-card">
                 <div class="course-title">📌 項目 2：3D列印後處理進階課程【⏱️預約待開班】</div>
-                <p style="margin: 0; font-size: 15px; color: #555;">探討高級支撐材拆除技巧、表面化學拋光、翻模拓樣與精細上色塗裝工藝。</p>
+                <p style="margin: 0; font-size: 15px; color: #555;">探討高級支撐材拆除技巧、表面化體拋光、翻模拓樣與精細上色塗裝工藝。</p>
             </div>
         </div>
 
@@ -139,9 +135,9 @@ HTML_TEMPLATE = """
             <h2>👨‍🏫 唯修頂尖講師陣容</h2>
             <div class="teacher-box">
                 <div class="tech-avatar">
-                    <div class="badge-title">ENGINEER</div>
-                    <div class="badge-name">Seb</div>
-                    <div class="badge-tech">3D TECH</div>
+                    <div class="avatar-title">WEIXIU</div>
+                    <div class="avatar-main">Seb</div>
+                    <div class="avatar-sub">3D TECH</div>
                 </div>
                 <div class="teacher-info">
                     <p style="font-weight: bold; color: #d9480f; font-size: 17px; margin: 0 0 5px 0;">Sebastian 工程師 / 課程總召集人</p>
@@ -219,7 +215,7 @@ def submit_registration():
     
     print(f"【新報名】學員：{name} | 電話：{phone} | 信箱：{email} | 課程：{selected_course}")
     
-    # 🚀 使用 100% Python 內建的 urllib 模組，完全不依賴任何外部套件，徹底解決 ModuleNotFoundError
+    # 🚀 直接調用 requests 模組（搭配 requirements.txt 配置），利用 443 埠網頁 API 發信，完全穿透 Render 的 SMTP 封鎖
     try:
         api_url = "https://api.mailgun.net/v3/sandboxde876d21396b4bf09c058778f3cc3b0c.mailgun.org/messages"
         api_key = "key-86db49de48123da6c87157834571ab3d"
@@ -238,33 +234,29 @@ def submit_registration():
 
 請負責同仁儘速與學員取得聯繫，謝謝！"""
 
-        payload = {
-            "from": "唯修科技自動報名系統 <mailgun@sandboxde876d21396b4bf09c058778f3cc3b0c.mailgun.org>",
-            "to": "service@weixiu.com.tw",
-            "subject": f"🔔 官網新學員報名通知：{name} 同學已報名 {selected_course}",
-            "text": mail_text
-        }
+        response = requests.post(
+            api_url,
+            auth=("api", api_key),
+            data={
+                "from": "唯修科技自動報名系統 <mailgun@sandboxde876d21396b4bf09c058778f3cc3b0c.mailgun.org>",
+                "to": "service@weixiu.com.tw",
+                "subject": f"🔔 官網新學員報名通知：{name} 同學已報名 {selected_course}",
+                "text": mail_text
+            },
+            timeout=10
+        )
         
-        data_encoded = urllib.parse.urlencode(payload).encode('utf-8')
-        req = urllib.request.Request(api_url, data=data_encoded, method='POST')
-        
-        auth_str = f"api:{api_key}"
-        auth_b64 = base64.b64encode(auth_str.encode('utf-8')).decode('utf-8')
-        req.add_header('Authorization', f'Basic {auth_b64}')
-        
-        with urllib.request.urlopen(req, timeout=10) as response:
-            status_code = response.getcode()
-            if status_code == 200:
-                print("==== 🎉 【發信成功】已成功穿透雲端限制，成功送達！ ====")
-            else:
-                print(f"⚠️ API 回傳異常代碼: {status_code}")
-                
+        if response.status_code == 200:
+            print("==== 🎉 【發信成功】已成功穿透雲端限制，成功送達！ ====")
+        else:
+            print(f"⚠️ API 回傳異常代碼: {response.status_code}, 內容: {response.text}")
+            
     except Exception as e:
         print(f"❌ 傳輸失敗原因: {str(e)}")
 
     return f"""
     <script>
-        alert('【唯修科技】您好 {name} 同學，您已成功提交報名資訊！恭喜您邁向不一樣的世界');
+        alert('【唯修科技】您好 {name} 同學，您已成功提交報名資訊！');
         window.location.href = '/';
     </script>
     """
