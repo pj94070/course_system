@@ -1,13 +1,10 @@
 import os
-import json
-import urllib.request
-import urllib.parse
-import base64
+import requests
 from flask import Flask, request
 
 app = Flask(__name__)
 
-# 📊 師資已更正為 Sebastian 工程師，電話更正為 03-531-6873，內建科技感大頭貼徽章
+# 📊 師資已精準更正為 Sebastian 工程師（無總字），電話更正為 03-531-6873，內建科技感徽章
 HTML_TEMPLATE = """
 <!DOCTYPE html>
 <html lang="zh-TW">
@@ -49,7 +46,7 @@ HTML_TEMPLATE = """
         .course-card { background: #f1f7fe; border: 1px solid #cedfeffa; padding: 20px; margin-bottom: 20px; border-radius: 8px; }
         .course-title { font-weight: bold; color: var(--primary-color); font-size: 18px; margin-bottom: 8px; }
         
-        /* 🎨 純 CSS 打造 3D 科技頭像徽章 - 解決個人圖片未顯示問題 */
+        /* 🎨 純 CSS 打造 3D 科技頭像徽章 - 完美取代原本遺失的圖檔，絕不破圖 */
         .teacher-box { display: flex; gap: 20px; align-items: center; background: #fdfaf2; padding: 25px; border-radius: 8px; border: 1px dashed var(--accent-color); margin-top: 20px; }
         .tech-avatar { width: 90px; height: 90px; border-radius: 50%; background: linear-gradient(135deg, #1a4985, #2b3a4a); display: flex; flex-direction: column; align-items: center; justify-content: center; border: 3px solid var(--accent-color); box-shadow: 0 4px 10px rgba(0,0,0,0.15); flex-shrink: 0; color: white; }
         .tech-avatar .avatar-title { font-size: 10px; opacity: 0.8; font-weight: bold; letter-spacing: 1px; margin-bottom: -2px; }
@@ -218,7 +215,7 @@ def submit_registration():
     
     print(f"【新報名】學員：{name} | 電話：{phone} | 信箱：{email} | 課程：{selected_course}")
     
-    # 🔒 100% 純內建 urllib 網路請求，完全不使用 requests，徹底破除 ModuleNotFoundError 與 NameError
+    # 🚀 搭配 requirements.txt 後，即可在雲端使用標準 requests 模組穩定發信
     try:
         api_url = "https://api.mailgun.net/v3/sandboxde876d21396b4bf09c058778f3cc3b0c.mailgun.org/messages"
         api_key = "key-86db49de48123da6c87157834571ab3d"
@@ -237,26 +234,23 @@ def submit_registration():
 
 請負責同仁儘速與學員取得聯繫，謝謝！"""
 
-        payload = {
-            "from": "唯修科技自動報名系統 <mailgun@sandboxde876d21396b4bf09c058778f3cc3b0c.mailgun.org>",
-            "to": "service@weixiu.com.tw",
-            "subject": f"🔔 官網新學員報名通知：{name} 同學已報名 {selected_course}",
-            "text": mail_text
-        }
+        response = requests.post(
+            api_url,
+            auth=("api", api_key),
+            data={
+                "from": "唯修科技自動報名系統 <mailgun@sandboxde876d21396b4bf09c058778f3cc3b0c.mailgun.org>",
+                "to": "service@weixiu.com.tw",
+                "subject": f"🔔 官網新學員報名通知：{name} 同學已報名 {selected_course}",
+                "text": mail_text
+            },
+            timeout=10
+        )
         
-        data_encoded = urllib.parse.urlencode(payload).encode('utf-8')
-        req = urllib.request.Request(api_url, data=data_encoded, method='POST')
-        
-        auth_str = f"api:{api_key}"
-        auth_b64 = base64.b64encode(auth_str.encode('utf-8')).decode('utf-8')
-        req.add_header('Authorization', f'Basic {auth_b64}')
-        
-        with urllib.request.urlopen(req, timeout=10) as response:
-            if response.getcode() == 200:
-                print("==== 🎉 【發信成功】已穿透 Render 限制成功送達！ ====")
-                
+        if response.status_code == 200:
+            print("==== 🎉 【發信成功】已成功送達郵件！ ====")
+            
     except Exception as e:
-        print(f"❌ 傳輸異常: {str(e)}")
+        print(f"❌ 傳輸失敗原因: {str(e)}")
 
     return f"""
     <script>
