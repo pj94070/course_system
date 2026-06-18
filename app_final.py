@@ -10,7 +10,7 @@ app = Flask(__name__)
 # ⚙️ 請在這裡填入您的 Gmail 與 16 位應用程式密碼
 # ==========================================================
 GMAIL_USER = "pj94070@gmail.com"  # 💡 改成您的 Gmail，例如: pj94070@gmail.com
-GMAIL_APP_PASSWORD = "Sebastian900506$$AA"  # 💡 改成您剛剛在 Google 產生的 16 位密碼
+GMAIL_APP_PASSWORD = "Sebastianaaaaaaa"  # 💡 改成您在 Google 產生的 16 位密碼（建議刪除空格）
 # ==========================================================
 
 # 📊 唯修科技 - 網頁 HTML 模板
@@ -86,7 +86,7 @@ HTML_TEMPLATE = """
         <div class="section-card">
             <h2>🎯 3D 列印基礎訓練課程介紹</h2>
             <p style="font-weight: bold; color: #555;">課程代碼：WX-3D115001</p>
-            <p>您想像過將腦中的藍圖，在 24 小時內轉化為手中真實的觸感嗎？在唯修科技，我們將帶領您突破傳統製造的侷限，掌握未來工業的核心競爭力。</p>
+            <p>您想像過將腦中的藍圖，在 24 小時內轉化為手中真實的觸感幕嗎？在唯修科技，我們將帶領您突破傳統製造的侷限，掌握未來工業的核心競爭力。</p>
             
             <h3>💡 為什麼選擇唯修科技？</h3>
             <div class="advantage-grid">
@@ -219,7 +219,6 @@ def submit_registration():
     course_map = {"1": "3D列印基礎認識實務課程", "2": "3D列印後處理進階課程"}
     selected_course = course_map.get(course_id, "未知課程")
     
-    # ⚙️ 改用 Python 內建安全標準庫 smtplib (免裝外部寄信套件)
     try:
         receiver = "service@weixiu.com.tw"
         
@@ -243,20 +242,29 @@ def submit_registration():
         msg['To'] = Header(receiver, 'utf-8')
         msg['Subject'] = Header(f"🔔 官網新學員報名通知：{name} 同學已報名 {selected_course}", 'utf-8')
         
-        # 使用 SSL 加密安全連線至 Gmail 的 SMTP 伺服器 (Port 465)
-        server = smtplib.SMTP_SSL('smtp.gmail.com', 465)
+        # 🚀 修正防死鎖機制：改用 Port 587 並限制 10 秒內必須完成連線，避免主機超時
+        print("▶️ [Gmail SMTP] 正在建立連線 (Port 587)...")
+        server = smtplib.SMTP('smtp.gmail.com', 587, timeout=10)
+        
+        print("▶️ [Gmail SMTP] 正在啟動 TLS 加密...")
+        server.starttls()
+        
+        print("▶️ [Gmail SMTP] 驗證帳號密碼登入中...")
         server.login(GMAIL_USER, GMAIL_APP_PASSWORD)
+        
+        print("▶️ [Gmail SMTP] 正在向伺服器發送信件...")
         server.sendmail(GMAIL_USER, [receiver], msg.as_string())
         server.quit()
         
-        print("==== 🎉 【Gmail SMTP 發信成功！】 ====")
+        print("==== 🎉 【Gmail SMTP 信件發送成功！】 ====")
                 
     except Exception as e:
+        # 如果失敗，僅在日誌印出原因，網頁不卡死崩潰
         print(f"❌ Gmail SMTP 發信傳輸異常: {str(e)}")
 
     return f"""
     <script>
-        alert('【唯修科技】您好 {name} 同學，您已成功提交報名資訊！');
+        alert('【唯修科技】您好 {name} 同學，您的報名資訊已成功送出！');
         window.location.href = '/';
     </script>
     """
