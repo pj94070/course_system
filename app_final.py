@@ -48,7 +48,7 @@ HTML_TEMPLATE = """
         .course-card { background: #f1f7fe; border: 1px solid #cedfeffa; padding: 20px; margin-bottom: 20px; border-radius: 8px; }
         .course-title { font-weight: bold; color: var(--primary-color); font-size: 18px; margin-bottom: 8px; }
         
-        /* 🎨 純 CSS 打造 3D 科技頭像徽章 - 完美取代原本遺失的圖檔，絕不破圖 */
+        /* 🎨 純 CSS 打造 3D 科技頭像徽章 */
         .teacher-box { display: flex; gap: 20px; align-items: center; background: #fdfaf2; padding: 25px; border-radius: 8px; border: 1px dashed var(--accent-color); margin-top: 20px; }
         .tech-avatar { width: 90px; height: 90px; border-radius: 50%; background: linear-gradient(135deg, #1a4985, #2b3a4a); display: flex; flex-direction: column; align-items: center; justify-content: center; border: 3px solid var(--accent-color); box-shadow: 0 4px 10px rgba(0,0,0,0.15); flex-shrink: 0; color: white; }
         .tech-avatar .avatar-title { font-size: 10px; opacity: 0.8; font-weight: bold; letter-spacing: 1px; margin-bottom: -2px; }
@@ -215,9 +215,6 @@ def submit_registration():
     course_map = {"1": "3D列印基礎認識實務課程", "2": "3D列印後處理進階課程"}
     selected_course = course_map.get(course_id, "未知課程")
     
-    print(f"【新報名】學員：{name} | 電話：{phone} | 信箱：{email} | 課程：{selected_course}")
-    
-    # 🔒 徹底移除外來套件呼叫，100% 只用內建 urllib 函式庫發信
     try:
         api_url = "https://api.mailgun.net/v3/sandboxde876d21396b4bf09c058778f3cc3b0c.mailgun.org/messages"
         api_key = "key-86db49de48123da6c87157834571ab3d"
@@ -252,7 +249,7 @@ def submit_registration():
         
         with urllib.request.urlopen(req, timeout=10) as response:
             if response.getcode() == 200:
-                print("==== 🎉 【發信成功】已成功送達郵件！ ====")
+                print("==== 🎉 【發信成功】 ====")
                 
     except Exception as e:
         print(f"❌ 傳輸異常: {str(e)}")
@@ -263,6 +260,9 @@ def submit_registration():
         window.location.href = '/';
     </script>
     """
+
+# 🚀 關鍵修正：讓這段變數同時相容於直接執行與作為模組導入，徹底打破 gunicorn 參數未解析之痛
+application = app
 
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 10000))
