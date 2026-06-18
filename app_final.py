@@ -78,7 +78,7 @@ HTML_TEMPLATE = """
         <div class="section-card">
             <h2>🎯 3D 列印基礎訓練課程介紹</h2>
             <p style="font-weight: bold; color: #555;">課程代碼：WX-3D115001</p>
-            <p>您想像過將腦中的藍圖，在 24 小時內轉化為手中真實的觸感嗎？在唯修科技，我們將帶領您突破傳統製造的侷限，掌握未來工業的核心競爭力。</p>
+            <p>您想像過將腦中的藍圖，在 24 小時內轉化為手中真實的觸感幕？在唯修科技，我們將帶領您突破傳統製造的侷限，掌握未來工業的核心競爭力。</p>
             
             <h3>💡 為什麼選擇唯修科技？</h3>
             <div class="advantage-grid">
@@ -133,11 +133,12 @@ HTML_TEMPLATE = """
         <div class="section-card">
             <h2>👨‍🏫 唯修頂尖講師陣容</h2>
             <div class="teacher-box">
-                <img src="/static/IMG_8743.JPG" alt="Sebastian 工程師" class="teacher-avatar-img">
+                <div style="width: 90px; height: 90px; border-radius: 50%; background-color: #1a4985; color: white; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 24px; border: 3px solid var(--accent-color); box-shadow: 0 4px 8px rgba(0,0,0,0.1); flex-shrink: 0;">金</div>
                 <div class="teacher-info">
-                    <p style="font-weight: bold; color: #d9480f; font-size: 17px;">Sebastian 工程師 / 課程總召集人</p>
+                    <p style="font-weight: bold; color: #d9480f; font-size: 17px;">金 總工程師 / 課程總召集人</p>
                     <p style="margin-top: 6px;">• 唯修科技 3D 列印技術研發部負責人</p>
                     <p>• 超過 10 年工業級 3D 列印、逆向工程與快速原型打樣實戰經驗</p>
+                    <p>• 專長：FDM/SLA 參數優化、產品結構修改與高精度打樣</p>
                 </div>
             </div>
         </div>
@@ -209,12 +210,12 @@ def submit_registration():
     
     print(f"【新報名】學員：{name} | 電話：{phone} | 信箱：{email} | 課程：{selected_course}")
     
-    # 🚀 使用 Python 內建的 urllib 模組發送網頁 API，百分之百不需額外安裝 requests，也完美防封鎖
+    # 🚀 使用 100% Python 內建的 urllib 庫發送 HTTPS 請求，完美避開 Render 對 SMTP 連接埠的封鎖
     try:
         api_url = "https://api.mailgun.net/v3/sandboxde876d21396b4bf09c058778f3cc3b0c.mailgun.org/messages"
         api_key = "key-86db49de48123da6c87157834571ab3d"
         
-        # 準備信件文字內容
+        # 準備信件內文
         mail_text = f"""您好，唯修科技管理團隊：
         
 官方網頁接收到一筆全新的線上報名表單，詳情如下：
@@ -229,7 +230,7 @@ def submit_registration():
 
 請負責同仁儘速與學員取得聯繫，謝謝！"""
 
-        # 整理成 Mailgun 網頁 API 的欄位資料
+        # 整理 Mailgun API 需要的 Form 表單欄位
         payload = {
             "from": "唯修科技自動報名系統 <mailgun@sandboxde876d21396b4bf09c058778f3cc3b0c.mailgun.org>",
             "to": "service@weixiu.com.tw",
@@ -237,31 +238,31 @@ def submit_registration():
             "text": mail_text
         }
         
-        # 將 payload 編碼為 x-www-form-urlencoded 格式
+        # 將 payload 編碼為 application/x-www-form-urlencoded
         data_encoded = urllib.parse.urlencode(payload).encode('utf-8')
         
-        # 建立 HTTP 請求物件
+        # 建立請求物件
         req = urllib.request.Request(api_url, data=data_encoded, method='POST')
         
-        # 處理 API Key 基礎身份驗證 (HTTP Basic Auth)
+        # 計算 HTTP Basic Authentication 的認證字串 (Mailgun API 的規定)
         auth_str = f"api:{api_key}"
         auth_b64 = base64.b64encode(auth_str.encode('utf-8')).decode('utf-8')
         req.add_header('Authorization', f'Basic {auth_b64}')
         
-        # 透過系統發送請求 (Port 443 HTTPS 安全連接)
+        # 正式送出網頁連線
         with urllib.request.urlopen(req, timeout=10) as response:
             status_code = response.getcode()
             if status_code == 200:
-                print("==== 🎉 【發信成功】客服郵件已順利穿透防火牆送達 service@weixiu.com.tw！ ====")
+                print("==== 🎉 【發信成功】客服郵件已順利穿透雲端限制，成功送達！ ====")
             else:
-                print(f"⚠️ API回傳異常代碼: {status_code}")
+                print(f"⚠️ API 回傳異常代碼: {status_code}")
                 
     except Exception as e:
-        print(f"❌ API傳輸失敗原因: {str(e)}")
+        print(f"❌ 傳輸失敗原因: {str(e)}")
 
     return f"""
     <script>
-        alert('【唯修科技】您好 {name} 同學，您已成功提交報名資訊！恭喜您朝向遠大的航道，創意無限');
+        alert('【唯修科技】您好 {name} 同學，您已成功提交報名資訊！恭喜您邁向不一樣的世界');
         window.location.href = '/';
     </script>
     """
