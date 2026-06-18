@@ -1,10 +1,19 @@
 import os
-import requests
+import smtplib
+from email.mime.text import MIMEText
+from email.header import Header
 from flask import Flask, request
 
 app = Flask(__name__)
 
-# 📊 師資、聯絡電話、表格時數均已校正完美版
+# ==========================================================
+# ⚙️ 請在這裡填入您的 Gmail 與 16 位應用程式密碼
+# ==========================================================
+GMAIL_USER = "pj94070@gmail.com"  # 💡 改成您的 Gmail，例如: pj94070@gmail.com
+GMAIL_APP_PASSWORD = "Sebastian900506$$AA"  # 💡 改成您剛剛在 Google 產生的 16 位密碼
+# ==========================================================
+
+# 📊 唯修科技 - 網頁 HTML 模板
 HTML_TEMPLATE = """
 <!DOCTYPE html>
 <html lang="zh-TW">
@@ -210,10 +219,9 @@ def submit_registration():
     course_map = {"1": "3D列印基礎認識實務課程", "2": "3D列印後處理進階課程"}
     selected_course = course_map.get(course_id, "未知課程")
     
-    # 修正：使用更穩定的 requests 搭配 HTTPBasicAuth 來傳遞 API Key
+    # ⚙️ 改用 Python 內建安全標準庫 smtplib (免裝外部寄信套件)
     try:
-        api_url = "https://api.mailgun.net/v3/sandboxde876d21396b4bf09c058778f3cc3b0c.mailgun.org/messages"
-        api_key = "key-86db49de48123da6c87157834571ab3d"
+        receiver = "service@weixiu.com.tw"
         
         mail_text = f"""您好，唯修科技管理團隊：
         
@@ -229,21 +237,22 @@ def submit_registration():
 
 請負責同仁儘速與學員取得聯繫，謝謝！"""
 
-        payload = {
-            "from": "唯修科技自動報名系統 <mailgun@sandboxde876d21396b4bf09c058778f3cc3b0c.mailgun.org>",
-            "to": "service@weixiu.com.tw",
-            "subject": f"🔔 官網新學員報名通知：{name} 同學已報名 {selected_course}",
-            "text": mail_text
-        }
+        # 設定信件內容與編碼
+        msg = MIMEText(mail_text, 'plain', 'utf-8')
+        msg['From'] = Header(f"唯修科技自動報名系統 <{GMAIL_USER}>", 'utf-8')
+        msg['To'] = Header(receiver, 'utf-8')
+        msg['Subject'] = Header(f"🔔 官網新學員報名通知：{name} 同學已報名 {selected_course}", 'utf-8')
         
-        response = requests.post(api_url, auth=("api", api_key), data=payload, timeout=10)
-        if response.status_code == 200:
-            print("==== 🎉 【發信成功】 ====")
-        else:
-            print(f"❌ Mailgun 伺服器拒絕發信 ({response.status_code}): {response.text}")
+        # 使用 SSL 加密安全連線至 Gmail 的 SMTP 伺服器 (Port 465)
+        server = smtplib.SMTP_SSL('smtp.gmail.com', 465)
+        server.login(GMAIL_USER, GMAIL_APP_PASSWORD)
+        server.sendmail(GMAIL_USER, [receiver], msg.as_string())
+        server.quit()
+        
+        print("==== 🎉 【Gmail SMTP 發信成功！】 ====")
                 
     except Exception as e:
-        print(f"❌ 傳輸異常: {str(e)}")
+        print(f"❌ Gmail SMTP 發信傳輸異常: {str(e)}")
 
     return f"""
     <script>
