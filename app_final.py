@@ -6,7 +6,7 @@ from flask import Flask, request
 
 app = Flask(__name__)
 
-# 📊 師資已精準更正為 Sebastian 工程師（無總字），電話更正為 03-531-6873，內建科技感徽章
+# 📊 師資、聯絡電話、表格時數均已校正完美版
 HTML_TEMPLATE = """
 <!DOCTYPE html>
 <html lang="zh-TW">
@@ -48,7 +48,6 @@ HTML_TEMPLATE = """
         .course-card { background: #f1f7fe; border: 1px solid #cedfeffa; padding: 20px; margin-bottom: 20px; border-radius: 8px; }
         .course-title { font-weight: bold; color: var(--primary-color); font-size: 18px; margin-bottom: 8px; }
         
-        /* 🎨 純 CSS 打造 3D 科技頭像徽章 */
         .teacher-box { display: flex; gap: 20px; align-items: center; background: #fdfaf2; padding: 25px; border-radius: 8px; border: 1px dashed var(--accent-color); margin-top: 20px; }
         .tech-avatar { width: 90px; height: 90px; border-radius: 50%; background: linear-gradient(135deg, #1a4985, #2b3a4a); display: flex; flex-direction: column; align-items: center; justify-content: center; border: 3px solid var(--accent-color); box-shadow: 0 4px 10px rgba(0,0,0,0.15); flex-shrink: 0; color: white; }
         .tech-avatar .avatar-title { font-size: 10px; opacity: 0.8; font-weight: bold; letter-spacing: 1px; margin-bottom: -2px; }
@@ -77,7 +76,6 @@ HTML_TEMPLATE = """
     </div>
 
     <div class="main-container">
-        
         <div class="section-card">
             <h2>🎯 3D 列印基礎訓練課程介紹</h2>
             <p style="font-weight: bold; color: #555;">課程代碼：WX-3D115001</p>
@@ -182,7 +180,6 @@ HTML_TEMPLATE = """
                 <button type="submit">確認送出報名資訊 ➔</button>
             </form>
         </div>
-
     </div>
 
     <div class="footer">
@@ -260,9 +257,6 @@ def submit_registration():
         window.location.href = '/';
     </script>
     """
-
-# 🚀 關鍵修正：讓這段變數同時相容於直接執行與作為模組導入，徹底打破 gunicorn 參數未解析之痛
-application = app
 
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 10000))
