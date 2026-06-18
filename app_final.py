@@ -6,7 +6,7 @@ from flask import Flask, request, jsonify
 
 app = Flask(__name__)
 
-# 💡 官方簡章版：單欄往下排列、內嵌所有核心簡介、師資正名、補齊聯絡資訊與官網連結
+# 💡 官方簡章終極版：465 連接埠防禦、單欄純垂直排版、圖片路徑修正、師資與電話正名
 HTML_TEMPLATE = """
 <!DOCTYPE html>
 <html lang="zh-TW">
@@ -29,7 +29,7 @@ HTML_TEMPLATE = """
         .header-banner h1 { margin: 0; font-size: 34px; letter-spacing: 2px; }
         .header-banner p { margin: 12px 0 0 0; opacity: 0.9; font-size: 16px; }
         
-        /* 核心包覆區：強制全單欄往下排列 */
+        /* 核心包覆區：嚴格全單欄往下排列 */
         .main-container { max-width: 800px; margin: 30px auto; padding: 0 20px; display: flex; flex-direction: column; gap: 30px; }
         
         /* 區塊通用樣式 */
@@ -38,6 +38,10 @@ HTML_TEMPLATE = """
         
         h2 { color: var(--primary-color); border-bottom: 2px solid #edf2f7; padding-bottom: 10px; margin-top: 0; font-size: 24px; display: flex; align-items: center; gap: 10px; }
         h3 { color: var(--dark-color); margin-top: 25px; font-size: 19px; border-left: 4px solid var(--secondary-color); padding-left: 8px; }
+        
+        /* 課表圖片區塊 */
+        .course-image-container { text-align: center; margin: 20px 0; background: var(--light-bg); padding: 15px; border-radius: 8px; border: 1px solid #dee2e6; }
+        .course-image-container img { max-width: 100%; height: auto; border-radius: 6px; box-shadow: 0 4px 10px rgba(0,0,0,0.08); }
         
         /* 優勢條列 */
         .advantage-grid { margin: 20px 0; }
@@ -48,7 +52,7 @@ HTML_TEMPLATE = """
         .course-card { background: #f1f7fe; border: 1px solid #cedfeffa; padding: 20px; margin-bottom: 20px; border-radius: 8px; }
         .course-title { font-weight: bold; color: var(--primary-color); font-size: 18px; margin-bottom: 8px; }
         
-        /* 師資卡片 */
+        /* 師資卡片 (正名為工程師) */
         .teacher-box { display: flex; gap: 20px; align-items: center; background: #fff9db; padding: 20px; border-radius: 8px; border: 1px dashed var(--accent-color); margin-top: 20px; }
         .teacher-avatar { width: 70px; height: 70px; background: var(--primary-color); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 24px; flex-shrink: 0; }
         .teacher-info p { margin: 3px 0; font-size: 15px; color: #495057; }
@@ -88,26 +92,37 @@ HTML_TEMPLATE = """
             <h3>💡 為什麼選擇唯修科技？</h3>
             <div class="advantage-grid">
                 <div class="advantage-item">
-                    <span class="advantage-title">● 實戰導向：</span>拒絕空談理論！完整剖析 3D 列印原理，並安排充足的實作環節，讓您親手操作機台。
+                    <span class="advantage-title">● 實戰導向：</span>拒絕空談理論！課程將介紹 3D 列印原理及相關介紹，讓你親手操作。
                 </div>
                 <div class="advantage-item">
-                    <span class="advantage-title">● 技術核心：</span>分享如何藉由參數調校討論，優化結構與解決材料難題的獨家祕訣。
+                    <span class="advantage-title">● 技術核心：</span>採小班制授課，分享不僅是操作，藉由討論解決結構與材料難題的祕訣。
                 </div>
                 <div class="advantage-item">
-                    <span class="advantage-title">● 從零到一：</span>提供系統化教學模組，涵蓋建模邏輯、切層軟體應用到高階後處理工藝。
+                    <span class="advantage-title">● 從零到一：</span>提供系統化的教學模組，涵蓋建模邏輯、切層軟體應用到後處理工藝。
                 </div>
                 <div class="advantage-item">
-                    <span class="advantage-title">● 額外加值：</span>除基礎繪圖指導與輔導獲取證書外，課後可加入專屬交流群組，享有講師 6 個月的線上技術顧問諮詢。
+                    <span class="advantage-title">● 跨界交流：</span>這裡不僅是教室，更是創新社群。與不同領域的學員激盪火花，發掘 3D 列印在各行各業的無限可能。
                 </div>
             </div>
 
-            <h3>📊 課程時間、時數與費用</h3>
+            <h3>📊 課程時間、時數與地點</h3>
             <ul>
-                <li><strong>課程時數：</strong>約 30 小時（含基礎繪圖指導、實作準備及 SOLIDWORKS 軟體認證輔導考證）。</li>
-                <li><strong>授課彈性：</strong>採精緻小班制實施教學，所有上課時間彈性調整，由學員以小組為單位與本公司訓練部門協調。未到課學員享有 3 次補課機會。</li>
-                <li><strong>課程費用：</strong>每人新台幣 18,000 元（含考照費用）。</li>
-                <li><strong>🔥 優惠方案：</strong>三人同行報名，享合計特惠價新台幣 50,000 元！</li>
-                <li><strong>發票開立：</strong>落實環境保護，本公司將於課程結束後一週內以 Email 寄送電子發票。</li>
+                <li><strong>課程時數：</strong>訓練課程約 30 小時（含繪圖指導及輔導考證）。</li>
+                <li><strong>授課方式：</strong>本公司為求教學品質及學員需求，故採小班制實施授課教學，所有上課時間彈性調整，由學員以小組為單位，與本公司訓練部門協調授課時間，未到課學員則有三次補課機會。</li>
+                <li><strong>課程地點：</strong>本公司多功能會議室及 3D 列印室。</li>
+            </ul>
+
+            <h3>📅 課程內容安排表</h3>
+            <div class="course-image-container">
+                <img src="/static/IMG_8743.JPG" alt="唯修科技3D列印課程大綱排班表">
+                <p style="font-size: 12px; color: #868e96; margin-top: 8px;">（上圖為 3D 列印與 SOLIDWORKS 認證加值課表進度安排）</p>
+            </div>
+
+            <h3>💰 費用與報名說明</h3>
+            <ul>
+                <li><strong>課程費用：</strong>每人新台幣 18,000 元（本訓練含考照費用）。請於收到錄取通知後一週內完成繳費並回傳證明。</li>
+                <li><strong>🔥 優惠方案：</strong>三人同行，優惠合計新台幣 50,000 元。</li>
+                <li><strong>電子發票：</strong>為落實環境保護，本公司將於課程結束後一週內以 Email 寄送電子發票。</li>
             </ul>
         </div>
 
@@ -128,7 +143,7 @@ HTML_TEMPLATE = """
             <div class="teacher-box">
                 <div class="teacher-avatar">S</div>
                 <div class="teacher-info">
-                    <p style="font-weight: bold; color: #d9480f; font-size: 17px;">Sebastian 總工程師 / 課程總召集人</p>
+                    <p style="font-weight: bold; color: #d9480f; font-size: 17px;">Sebastian 工程師 / 課程總召集人</p>
                     <p style="margin-top: 6px;">• 唯修科技 3D 列印技術研發部負責人</p>
                     <p>• 超過 10 年工業級 3D 列印、逆向工程與快速原型打樣實戰生產經驗</p>
                     <p>• 專長：FDM/SLA 參數優化、產品結構結構改良與高精度打樣</p>
@@ -180,10 +195,11 @@ HTML_TEMPLATE = """
         <p>🌐 歡迎訪問我們的官方網站：<a href="https://www.weixiu.com.tw" target="_blank">唯修科技有限公司 官方網站</a></p>
         <div class="company-meta">
             <strong>唯修科技有限公司 WEIXIU MAINTAIN TECHNOLOGY CORPORATION</strong><br>
-            📞 聯絡電話：(03) 538-XXXX（歡迎來電洽詢課程部門） | 📨 官方客服信箱：<a href="mailto:service@weixiu.com.tw">service@weixiu.com.tw</a><br>
+            📞 聯絡電話：0976-575-583（歡迎來電洽詢課程部門） | 📨 官方客服信箱：<a href="mailto:service@weixiu.com.tw">service@weixiu.com.tw</a><br>
             📍 公司地址：300075 新竹市香山區中華路四段518號9樓<br>
-            🚊 交通建議：搭乘火車至「三姓橋站」，出站後步行約 10 分鐘即可抵達本公司多功能會議室。現場設有機車停車格。<br>
-            🌱 環保叮嚀：現場提供充足飲水設備，請學員自備環保杯，與唯修科技共同為地球盡一份心力。
+            🚊 交通建議：建議搭乘火車至三姓橋站，步行約 10 分鐘即可抵達本公司多功能會議室及 3D 列印室。<br>
+            🅿️ 停車需求：本公司設有機車停車格，若有汽車車位需求，須聯繫本公司再行回覆。<br>
+            🌱 環保叮嚀：現場提供飲水設備，請學員自備環保杯，讓我們為地球盡一份心力。
         </div>
         <p style="margin-top: 20px; font-size: 12px; color: #adb5bd;">© 2026 唯修科技. All Rights Reserved. 3D自動化招生管理系統平台</p>
     </div>
@@ -210,8 +226,9 @@ def submit_registration():
     print(f"【成功接收報名】學員：{name} ({gender}) | 電話：{phone} | 信箱：{email} | 項目：{selected_course}")
     
     try:
+        # 💡 安全性核心變更：由 587 連接埠改為更穩定的 SSL 465 加密連接埠，穿透 Render 免費版的防火牆限制！
         smtp_server = "smtp.gmail.com"
-        smtp_port = 587
+        smtp_port = 465
         
         # ⚠️ 請記得在這裡更換成您發信用的 Gmail 帳號與 16 位元應用程式密碼
         sender_email = "填入您發信用的Gmail@gmail.com"        
@@ -242,9 +259,8 @@ def submit_registration():
         message['To'] = Header("唯修科技客服 <service@weixiu.com.tw>", 'utf-8')
         message['Subject'] = Header(f"🔔 新增報名通知：{name} 同學已報名 {selected_course}", 'utf-8')
         
-        print("【系統通知】正在透過 587 連線至郵件伺服器...")
-        with smtplib.SMTP(smtp_server, smtp_port, timeout=10) as server:
-            server.starttls()  
+        print("【系統通知】正在透過 465 加密連接埠連線至郵件伺服器...")
+        with smtplib.SMTP_SSL(smtp_server, smtp_port, timeout=10) as server:
             server.login(sender_email, sender_password)
             server.sendmail(sender_email, [receiver_email], message.as_string())
         print("【系統通知】公司客服郵件通知已成功寄出！")
