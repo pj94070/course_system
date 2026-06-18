@@ -6,95 +6,138 @@ from flask import Flask, request, jsonify
 
 app = Flask(__name__)
 
-# 💡 將原本不見的師資、課程詳情、品牌圖文資訊，全部以精美現代的 RWD 網頁樣式完美內嵌！
+# 💡 官方簡章版：單欄往下排列、內嵌所有核心簡介、師資正名、補齊聯絡資訊與官網連結
 HTML_TEMPLATE = """
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>唯修科技 WEIXIU TECHNOLOGY - 3D列印專業課程報名</title>
+    <title>唯修科技 WEIXIU TECHNOLOGY - 3D列印專業訓練課程報名</title>
     <style>
         :root {
-            --primary-color: #0056b3;
-            --secondary-color: #17a2b8;
-            --dark-color: #2c3e50;
+            --primary-color: #1a4985;
+            --secondary-color: #007bff;
+            --accent-color: #f59f00;
+            --dark-color: #2b3a4a;
             --light-bg: #f8f9fa;
         }
-        body { font-family: 'Helvetica Neue', Arial, sans-serif; background-color: #f1f3f5; color: #333; margin: 0; padding: 0; line-height: 1.6; }
-        .header-banner { background: linear-gradient(135deg, var(--dark-color), var(--primary-color)); color: white; text-align: center; padding: 40px 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
-        .header-banner h1 { margin: 0; font-size: 32px; letter-spacing: 2px; }
-        .header-banner p { margin: 10px 0 0 0; opacity: 0.9; font-size: 16px; }
+        body { font-family: 'Helvetica Neue', Arial, sans-serif; background-color: #eef2f5; color: #333; margin: 0; padding: 0; line-height: 1.7; }
         
-        .main-wrapper { max-width: 1000px; margin: 30px auto; padding: 0 20px; display: grid; grid-template-columns: 1.3fr 1fr; gap: 30px; }
-        @media (max-width: 768px) { .main-wrapper { grid-template-columns: 1fr; } }
+        /* 頂部 Banner */
+        .header-banner { background: linear-gradient(135deg, var(--dark-color), var(--primary-color)); color: white; text-align: center; padding: 50px 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        .header-banner h1 { margin: 0; font-size: 34px; letter-spacing: 2px; }
+        .header-banner p { margin: 12px 0 0 0; opacity: 0.9; font-size: 16px; }
         
-        .info-section { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
-        .form-section { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); border-top: 5px solid var(--primary-color); height: fit-content; }
+        /* 核心包覆區：強制全單欄往下排列 */
+        .main-container { max-width: 800px; margin: 30px auto; padding: 0 20px; display: flex; flex-direction: column; gap: 30px; }
         
-        h2 { color: var(--primary-color); border-bottom: 2px solid #edf2f7; padding-bottom: 8px; margin-top: 0; font-size: 22px; display: flex; align-items: center; gap: 8px; }
-        h3 { color: var(--dark-color); margin-top: 20px; font-size: 18px; }
+        /* 區塊通用樣式 */
+        .section-card { background: white; padding: 35px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+        .form-section { border-top: 6px solid var(--secondary-color); }
         
-        /* 課程與師資樣式 */
-        .course-card { background: var(--light-bg); border-left: 4px solid var(--secondary-color); padding: 15px; margin-bottom: 15px; border-radius: 0 8px 8px 0; }
-        .course-title { font-weight: bold; color: var(--dark-color); font-size: 16px; }
-        .course-desc { font-size: 14px; color: #666; margin: 5px 0 0 0; }
+        h2 { color: var(--primary-color); border-bottom: 2px solid #edf2f7; padding-bottom: 10px; margin-top: 0; font-size: 24px; display: flex; align-items: center; gap: 10px; }
+        h3 { color: var(--dark-color); margin-top: 25px; font-size: 19px; border-left: 4px solid var(--secondary-color); padding-left: 8px; }
         
-        .teacher-box { display: flex; gap: 15px; align-items: center; background: #fff9db; padding: 15px; border-radius: 8px; border: 1px dashed #f59f00; margin-top: 15px; }
-        .teacher-avatar { width: 60px; height: 60px; background: #e9ecef; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; color: #495057; font-size: 20px; border: 2px solid #fff; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-        .teacher-info p { margin: 0; font-size: 14px; color: #495057; }
+        /* 優勢條列 */
+        .advantage-grid { margin: 20px 0; }
+        .advantage-item { background: var(--light-bg); padding: 15px 20px; margin-bottom: 12px; border-radius: 8px; border-left: 4px solid #28a745; }
+        .advantage-title { font-weight: bold; color: var(--dark-color); font-size: 16px; }
         
-        /* 表單樣式 */
-        .form-group { margin-bottom: 20px; }
-        label { display: block; font-weight: bold; margin-bottom: 8px; color: #444; font-size: 15px; }
-        input[type="text"], input[type="tel"], input[type="email"], select { width: 100%; padding: 12px; border: 1px solid #ced4da; border-radius: 6px; box-sizing: border-box; font-size: 15px; transition: border-color 0.2s; }
-        input:focus, select:focus { border-color: var(--primary-color); outline: none; }
-        .radio-group { display: flex; gap: 20px; margin-top: 5px; }
-        .radio-group label { font-weight: normal; display: flex; align-items: center; gap: 5px; cursor: pointer; }
+        /* 課程卡片 */
+        .course-card { background: #f1f7fe; border: 1px solid #cedfeffa; padding: 20px; margin-bottom: 20px; border-radius: 8px; }
+        .course-title { font-weight: bold; color: var(--primary-color); font-size: 18px; margin-bottom: 8px; }
         
-        button { width: 100%; background: linear-gradient(135deg, #007bff, #0056b3); color: white; border: none; padding: 14px; font-size: 16px; font-weight: bold; border-radius: 6px; cursor: pointer; box-shadow: 0 4px 10px rgba(0,123,255,0.3); transition: all 0.3s; margin-top: 10px; }
-        button:hover { background: linear-gradient(135deg, #0056b3, #004085); transform: translateY(-1px); box-shadow: 0 6px 14px rgba(0,123,255,0.4); }
+        /* 師資卡片 */
+        .teacher-box { display: flex; gap: 20px; align-items: center; background: #fff9db; padding: 20px; border-radius: 8px; border: 1px dashed var(--accent-color); margin-top: 20px; }
+        .teacher-avatar { width: 70px; height: 70px; background: var(--primary-color); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 24px; flex-shrink: 0; }
+        .teacher-info p { margin: 3px 0; font-size: 15px; color: #495057; }
         
-        .footer { text-align: center; padding: 30px 20px; color: #868e96; font-size: 13px; background: #fff; margin-top: 5px; border-top: 1px solid #dee2e6; }
+        /* 表單元素 */
+        .form-group { margin-bottom: 22px; }
+        label { display: block; font-weight: bold; margin-bottom: 9px; color: #444; font-size: 16px; }
+        input[type="text"], input[type="tel"], input[type="email"], select { width: 100%; padding: 13px; border: 1px solid #ced4da; border-radius: 6px; box-sizing: border-box; font-size: 16px; transition: border-color 0.2s; background-color: #fafafa; }
+        input:focus, select:focus { border-color: var(--secondary-color); background-color: #fff; outline: none; }
+        .radio-group { display: flex; gap: 25px; margin-top: 5px; }
+        .radio-group label { font-weight: normal; display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 16px; }
+        
+        button { width: 100%; background: linear-gradient(135deg, #007bff, #0056b3); color: white; border: none; padding: 15px; font-size: 18px; font-weight: bold; border-radius: 6px; cursor: pointer; box-shadow: 0 4px 12px rgba(0,123,255,0.3); transition: all 0.3s; margin-top: 10px; }
+        button:hover { background: linear-gradient(135deg, #0056b3, #004085); transform: translateY(-1px); box-shadow: 0 6px 16px rgba(0,123,255,0.4); }
+        
+        /* 頁尾聯絡與官網連結 */
+        .footer { text-align: center; padding: 40px 20px; color: #6c757d; font-size: 14px; background: white; border-top: 1px solid #dee2e6; margin-top: 5px; }
+        .footer a { color: var(--secondary-color); text-decoration: none; font-weight: bold; }
+        .footer a:hover { text-decoration: underline; }
+        .company-meta { margin-top: 15px; font-size: 13px; color: #868e96; line-height: 1.8; }
     </style>
 </head>
 <body>
 
     <div class="header-banner">
         <h1>唯修科技 WEIXIU TECHNOLOGY</h1>
-        <p>💡 卓越品牌 ✕ 頂尖智慧 | 3D列印專業技術實務培訓班</p>
+        <p>別讓創意只停留在 2D！帶你從「想」到「摸得到」🚀</p>
     </div>
 
-    <div class="main-wrapper">
-        <div class="info-section">
-            <h2>🎯 課程簡介與核心亮點</h2>
-            <p>唯修科技致力於推廣工業級與商用 3D 列印技術。本年度精心規劃兩大核心主題課程，從零基礎概念建立到高階工藝後處理加工，全面輔導學員掌握產業關鍵技術，縮短產品開發週期。</p>
+    <div class="main-container">
+        
+        <div class="section-card">
+            <h2>🎯 3D 列印基礎訓練課程介紹</h2>
+            <p style="font-weight: bold; color: #555;">課程代碼：WX-3D115001</p>
+            <p>您想像過將腦中的藍圖，在 24 小時內轉化為手中真實的觸感嗎？本課程專為對 3D 列印技術有實務需求之專業人士及愛好者設計。結合唯修科技多年的設備開發與維修經驗，導入最新的切層邏輯與材料科學實例作為訓練教材，全面協助學員排除常見列印失敗痛點，推動快速原型開發能力！</p>
             
-            <h2>📚 開班課程資訊</h2>
-            <div class="course-card">
-                <div class="course-title">📌 課程 A：3D列印基礎認識實務課程【🔥確定開班】</div>
-                <p class="course-desc">適合完全零基礎者。課程涵蓋 3D 列印原理剖析、主流切片軟體操作實務、機台校準校正維護，以及常用線材（PLA/PETG）特性與列印參數調校優化。</p>
-            </div>
-            
-            <div class="course-card">
-                <div class="course-title">📌 課程 B：3D列印後處理進階課程【⏱️預約待開班】</div>
-                <p class="course-desc">專為追求極致成品外觀的學員設計。深入探討支撐材拆除技巧、表面化學拋光、噴砂處理、基礎翻模拓樣、多層次上色與精細塗裝工藝。</p>
+            <h3>💡 為什麼選擇唯修科技？</h3>
+            <div class="advantage-grid">
+                <div class="advantage-item">
+                    <span class="advantage-title">● 實戰導向：</span>拒絕空談理論！完整剖析 3D 列印原理，並安排充足的實作環節，讓您親手操作機台。
+                </div>
+                <div class="advantage-item">
+                    <span class="advantage-title">● 技術核心：</span>分享如何藉由參數調校討論，優化結構與解決材料難題的獨家祕訣。
+                </div>
+                <div class="advantage-item">
+                    <span class="advantage-title">● 從零到一：</span>提供系統化教學模組，涵蓋建模邏輯、切層軟體應用到高階後處理工藝。
+                </div>
+                <div class="advantage-item">
+                    <span class="advantage-title">● 額外加值：</span>除基礎繪圖指導與輔導獲取證書外，課後可加入專屬交流群組，享有講師 6 個月的線上技術顧問諮詢。
+                </div>
             </div>
 
-            <h2>👨‍🏫 唯修專業講師陣容</h2>
+            <h3>📊 課程時間、時數與費用</h3>
+            <ul>
+                <li><strong>課程時數：</strong>約 30 小時（含基礎繪圖指導、實作準備及 SOLIDWORKS 軟體認證輔導考證）。</li>
+                <li><strong>授課彈性：</strong>採精緻小班制實施教學，所有上課時間彈性調整，由學員以小組為單位與本公司訓練部門協調。未到課學員享有 3 次補課機會。</li>
+                <li><strong>課程費用：</strong>每人新台幣 18,000 元（含考照費用）。</li>
+                <li><strong>🔥 優惠方案：</strong>三人同行報名，享合計特惠價新台幣 50,000 元！</li>
+                <li><strong>發票開立：</strong>落實環境保護，本公司將於課程結束後一週內以 Email 寄送電子發票。</li>
+            </ul>
+        </div>
+
+        <div class="section-card">
+            <h2>📚 招生開班項目</h2>
+            <div class="course-card">
+                <div class="course-title">📌 項目 1：3D列印基礎認識實務課程【🔥確定開班】</div>
+                <p style="margin: 0; font-size: 15px; color: #555;">適合零基礎者。教授 FDM 原理、切片軟體精準操作、機台校準校正維護，以及常用線材（PLA/PETG）參數調校優化。</p>
+            </div>
+            <div class="course-card">
+                <div class="course-title">📌 項目 2：3D列印後處理進階課程【⏱️預約待開班】</div>
+                <p style="margin: 0; font-size: 15px; color: #555;">探討高級支撐材拆除技巧、表面化學拋光、噴砂處理、基礎翻模拓樣、多層次上色與精細塗裝工藝。</p>
+            </div>
+        </div>
+
+        <div class="section-card">
+            <h2>👨‍🏫 唯修頂尖講師陣容</h2>
             <div class="teacher-box">
-                <div class="teacher-avatar">金</div>
+                <div class="teacher-avatar">S</div>
                 <div class="teacher-info">
-                    <p style="font-weight: bold; color: #d9480f; font-size: 16px;">金 總工程師 / 課程總召集人</p>
-                    <p style="margin-top: 4px;">• 唯修科技 3D 列印技術研發部負責人</p>
-                    <p>• 超過 10 年工業級 3D 列印、逆向工程與快速原型打樣實戰經驗</p>
+                    <p style="font-weight: bold; color: #d9480f; font-size: 17px;">Sebastian 總工程師 / 課程總召集人</p>
+                    <p style="margin-top: 6px;">• 唯修科技 3D 列印技術研發部負責人</p>
+                    <p>• 超過 10 年工業級 3D 列印、逆向工程與快速原型打樣實戰生產經驗</p>
                     <p>• 專長：FDM/SLA 參數優化、產品結構結構改良與高精度打樣</p>
                 </div>
             </div>
         </div>
 
-        <div class="form-section">
-            <h2>✍️ 快速學員登記</h2>
+        <div class="section-card form-section">
+            <h2>✍️ 快速學員線上登記</h2>
             <form action="/submit_registration" method="POST">
                 <div class="form-group">
                     <label for="name">學員姓名</label>
@@ -130,11 +173,19 @@ HTML_TEMPLATE = """
                 <button type="submit">確認送出報名資訊 ➔</button>
             </form>
         </div>
+
     </div>
 
     <div class="footer">
-        © 2026 唯修科技 WEIXIU TECHNOLOGY. All Rights Reserved. <br>
-        技術支援：3D列印自動化課程招生管理系統
+        <p>🌐 歡迎訪問我們的官方網站：<a href="https://www.weixiu.com.tw" target="_blank">唯修科技有限公司 官方網站</a></p>
+        <div class="company-meta">
+            <strong>唯修科技有限公司 WEIXIU MAINTAIN TECHNOLOGY CORPORATION</strong><br>
+            📞 聯絡電話：(03) 538-XXXX（歡迎來電洽詢課程部門） | 📨 官方客服信箱：<a href="mailto:service@weixiu.com.tw">service@weixiu.com.tw</a><br>
+            📍 公司地址：300075 新竹市香山區中華路四段518號9樓<br>
+            🚊 交通建議：搭乘火車至「三姓橋站」，出站後步行約 10 分鐘即可抵達本公司多功能會議室。現場設有機車停車格。<br>
+            🌱 環保叮嚀：現場提供充足飲水設備，請學員自備環保杯，與唯修科技共同為地球盡一份心力。
+        </div>
+        <p style="margin-top: 20px; font-size: 12px; color: #adb5bd;">© 2026 唯修科技. All Rights Reserved. 3D自動化招生管理系統平台</p>
     </div>
 
 </body>
@@ -162,7 +213,7 @@ def submit_registration():
         smtp_server = "smtp.gmail.com"
         smtp_port = 587
         
-        # ⚠️ 請在此處更換成您發信用的 Gmail 帳號與 16 位元應用程式密碼
+        # ⚠️ 請記得在這裡更換成您發信用的 Gmail 帳號與 16 位元應用程式密碼
         sender_email = "填入您發信用的Gmail@gmail.com"        
         sender_password = "填入16位元應用程式密碼"  
         
