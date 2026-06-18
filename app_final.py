@@ -1,5 +1,5 @@
 import os
-import requests  # 🚀 使用萬能 HTTPS 通道，完全穿透 Render 網路封鎖
+import requests
 from flask import Flask, request
 
 app = Flask(__name__)
@@ -83,7 +83,7 @@ HTML_TEMPLATE = """
             <div class="advantage-grid">
                 <div class="advantage-item"><span class="advantage-title">● 實戰導向：</span>課程將介紹 3D 列印原理及相關介紹，讓你親手操作。</div>
                 <div class="advantage-item"><span class="advantage-title">● 技術核心：</span>採小班制授課，藉由討論解決結構與材料難題的祕訣。</div>
-                <div class="advantage-item"><span class="advantage-title">● 從零到一：</span>提供系統化的教學模組，涵蓋建模邏輯、切層軟體應用到後處理工藝。</div>
+                <div class="advantage-item"><span class="advantage-title">● 從零到一：</span>提供系統化的教學模組，涵蓋建模邏輯、切片軟體應用到後處理工藝。</div>
                 <div class="advantage-item"><span class="advantage-title">● 跨界交流：</span>與不同領域的學員激盪火花，發掘 3D 列印在各行各業的無限可能。</div>
             </div>
 
@@ -210,49 +210,33 @@ def submit_registration():
     course_map = {"1": "3D列印基礎認識實務課程", "2": "3D列印後處理進階課程"}
     selected_course = course_map.get(course_id, "未知課程")
     
-    # 📝 組裝要發送的郵件詳細格式
-    mail_content = f"""【唯修科技 - 新學員線上登記登記通知】
-
-網站系統接收到一筆全新學員報名資料，內容如下：
-
-====================================
-學員姓名：{name}
-學員性別：{gender}
-聯絡電話：{phone}
-電子信箱：{email}
-報名項目：{selected_course}
-====================================
-
-請行政人員儘速登錄系統並取得連繫，謝謝。"""
-
-    # 🚀 使用完全免註冊驗證、100% 允許 POST 的 HTTPS 郵件路由 API
-    # 這裡我們使用公共中繼發信端，直接指定目標發信目的地為 pj94070@gmail.com
-    api_url = "https://ntfy.sh/_mail_forwarder_weixiu_3d"
+    # 🚀 已成功綁定您建立的 Discord Webhook 網址
+    DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/1517080613822398625/uKiiRNp_3knea-qs92sxGQmCHVLrQI_UdZrlLbmWqBmJ5atzFQYl7DcasQxV5G3xfVo1"
     
-    headers = {
-        "Title": f"🔔 官網新學員報名：{name}已報名{selected_course}".encode('utf-8'),
-        "Priority": "high"
+    # 📝 格式化推播卡片內容
+    payload = {
+        "embeds": [
+            {
+                "title": "🔔 唯修科技 - 新學員線上登記登記通知",
+                "color": 1104926,  # 唯修品牌藍色邊條
+                "fields": [
+                    {"name": "👤 學員姓名", "value": name, "inline": True},
+                    {"name": "🚻 性別", "value": gender, "inline": True},
+                    {"name": "📞 聯絡電話", "value": phone, "inline": True},
+                    {"name": "✉️ 電子信箱", "value": email, "inline": False},
+                    {"name": "📚 報名項目", "value": selected_course, "inline": False}
+                ],
+                "footer": {"text": "官網報名系統自動轉寄"}
+            }
+        ]
     }
     
     try:
-        print("▶️ [HTTPS Forwarder] 正在發送封包至中繼端...")
-        # 透過標準 443 埠口將資訊打包發送
-        response = requests.post(api_url, data=mail_content.encode('utf-8'), headers=headers, timeout=10)
-        
-        # 雙重保險：同時呼叫另一個備用免密鑰公開發信通道，確保 pj94070@gmail.com 絕對能收到
-        backup_url = "https://api.staticforms.xyz/submit"
-        backup_payload = {
-            "accessKey": "9fba6524-188b-4a4f-ba7d-df98246cb4bf",  # 公用發信憑證
-            "subject": f"唯修科技新學員登記 - {name}",
-            "email": "service@weixiu.com.tw",
-            "message": mail_content,
-            "replyTo": email
-        }
-        requests.post(backup_url, data=backup_payload, timeout=10)
-        print("==== 🎉 【網頁通訊埠轉寄完畢！報名資料已成功投遞】 ====")
-        
+        print("▶️ [Discord Webhook] 正在將學員報名資料發射至 Discord...")
+        response = requests.post(DISCORD_WEBHOOK_URL, json=payload, timeout=10)
+        print(f"==== 🎉 Discord 伺服器回應狀態碼: {response.status_code} ====")
     except Exception as e:
-        print(f"❌ 網路發送異常: {str(e)}")
+        print(f"❌ Discord 傳輸異常: {str(e)}")
 
     return f"""
     <script>
