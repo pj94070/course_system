@@ -7,7 +7,7 @@ from flask import Flask, request
 
 app = Flask(__name__)
 
-# 📊 依據官方 PDF 訓練簡章完整配置的網頁模板
+# 📊 依據官方 PDF 訓練簡章完整配置並導入科技感無圖破圖風險徽章的網頁模板
 HTML_TEMPLATE = """
 <!DOCTYPE html>
 <html lang="zh-TW">
@@ -49,9 +49,14 @@ HTML_TEMPLATE = """
         .course-card { background: #f1f7fe; border: 1px solid #cedfeffa; padding: 20px; margin-bottom: 20px; border-radius: 8px; }
         .course-title { font-weight: bold; color: var(--primary-color); font-size: 18px; margin-bottom: 8px; }
         
+        /* 🎨 全新技術風格核心頭像（不綁定外部檔案，100%防破圖顯示） */
         .teacher-box { display: flex; gap: 20px; align-items: center; background: #fdfaf2; padding: 25px; border-radius: 8px; border: 1px dashed var(--accent-color); margin-top: 20px; }
-        .teacher-avatar-img { width: 90px; height: 90px; border-radius: 50%; object-fit: cover; border: 3px solid var(--accent-color); flex-shrink: 0; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
-        
+        .tech-avatar { width: 95px; height: 95px; border-radius: 50%; background: linear-gradient(135deg, #1e3c72, #2a5298); display: flex; flex-direction: column; align-items: center; justify-content: center; border: 3px solid #f59f00; box-shadow: 0 4px 10px rgba(0,0,0,0.15); flex-shrink: 0; color: white; position: relative; overflow: hidden; }
+        .tech-avatar::before { content: ""; position: absolute; width: 100%; height: 100%; background: radial-gradient(circle, transparent 60%, rgba(245,159,0,0.2) 100%); }
+        .tech-avatar .badge-title { font-size: 11px; letter-spacing: 1px; opacity: 0.85; margin-bottom: -2px; font-weight: bold; text-transform: uppercase; }
+        .tech-avatar .badge-name { font-size: 36px; font-weight: 900; color: #f59f00; text-shadow: 1px 2px 4px rgba(0,0,0,0.4); font-family: "Noto Sans TC", "Microsoft JhengHei", sans-serif; }
+        .tech-avatar .badge-tech { font-size: 9px; background: #f59f00; color: #1e3c72; padding: 1px 5px; border-radius: 3px; font-weight: bold; margin-top: -1px; scale: 0.9; }
+
         .form-group { margin-bottom: 22px; }
         label { display: block; font-weight: bold; margin-bottom: 9px; color: #444; font-size: 16px; }
         input[type="text"], input[type="tel"], input[type="email"], select { width: 100%; padding: 13px; border: 1px solid #ced4da; border-radius: 6px; box-sizing: border-box; font-size: 16px; background-color: #fafafa; }
@@ -78,7 +83,7 @@ HTML_TEMPLATE = """
         <div class="section-card">
             <h2>🎯 3D 列印基礎訓練課程介紹</h2>
             <p style="font-weight: bold; color: #555;">課程代碼：WX-3D115001</p>
-            <p>您想像過將腦中的藍圖，在 24 小時內轉化為手中真實的觸感幕？在唯修科技，我們將帶領您突破傳統製造的侷限，掌握未來工業的核心競爭力。</p>
+            <p>您想像過將腦中的藍圖，在 24 小時內轉化為手中真實的觸感嗎？在唯修科技，我們將帶領您突破傳統製造的侷限，掌握未來工業的核心競爭力。</p>
             
             <h3>💡 為什麼選擇唯修科技？</h3>
             <div class="advantage-grid">
@@ -133,12 +138,16 @@ HTML_TEMPLATE = """
         <div class="section-card">
             <h2>👨‍🏫 唯修頂尖講師陣容</h2>
             <div class="teacher-box">
-                <div style="width: 90px; height: 90px; border-radius: 50%; background-color: #1a4985; color: white; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 24px; border: 3px solid var(--accent-color); box-shadow: 0 4px 8px rgba(0,0,0,0.1); flex-shrink: 0;">金</div>
+                <div class="tech-avatar">
+                    <div class="badge-title">WEIXIU</div>
+                    <div class="badge-name">金</div>
+                    <div class="badge-tech">3D PRINT</div>
+                </div>
                 <div class="teacher-info">
-                    <p style="font-weight: bold; color: #d9480f; font-size: 17px;">金 總工程師 / 課程總召集人</p>
-                    <p style="margin-top: 6px;">• 唯修科技 3D 列印技術研發部負責人</p>
-                    <p>• 超過 10 年工業級 3D 列印、逆向工程與快速原型打樣實戰經驗</p>
-                    <p>• 專長：FDM/SLA 參數優化、產品結構修改與高精度打樣</p>
+                    <p style="font-weight: bold; color: #d9480f; font-size: 17px; margin: 0 0 5px 0;">金 總工程師 / 課程總召集人</p>
+                    <p style="margin: 3px 0;">• 唯修科技 3D 列印技術研發部負責人</p>
+                    <p style="margin: 3px 0;">• 超過 10 年工業級 3D 列印、逆向工程與快速原型打樣實戰經驗</p>
+                    <p style="margin: 3px 0;">• 專長：FDM/SLA 參數優化、產品結構修改與高精度打樣</p>
                 </div>
             </div>
         </div>
@@ -210,7 +219,7 @@ def submit_registration():
     
     print(f"【新報名】學員：{name} | 電話：{phone} | 信箱：{email} | 課程：{selected_course}")
     
-    # 🚀 使用 100% Python 內建的 urllib 庫發送 HTTPS 請求，完美避開 Render 對 SMTP 連接埠的封鎖
+    # 🚀 透過 100% Python 內建的核心 urllib 模組發送網頁 API HTTPS 請求，徹底排除 ModuleNotFoundError
     try:
         api_url = "https://api.mailgun.net/v3/sandboxde876d21396b4bf09c058778f3cc3b0c.mailgun.org/messages"
         api_key = "key-86db49de48123da6c87157834571ab3d"
