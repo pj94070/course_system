@@ -1,6 +1,9 @@
 import os
-import requests
-from flask import Flask, request, jsonify
+import json
+import urllib.request
+import urllib.parse
+import base64
+from flask import Flask, request
 
 app = Flask(__name__)
 
@@ -178,7 +181,7 @@ HTML_TEMPLATE = """
         <p>🌐 歡迎訪問我們的官方網站：<a href="https://www.weixiu.com.tw" target="_blank">唯修科技有限公司 官方網站</a></p>
         <div class="company-meta">
             <strong>唯修科技有限公司 WEIXIU MAINTAIN TECHNOLOGY CORPORATION</strong><br>
-            📞 聯絡電話：0976-575-583 | 📨 官方客服信箱：service@weixiu.com.tw<br>
+            📞 聯絡電話：03-531-6873 | 📨 官方客服信箱：service@weixiu.com.tw<br>
             📍 上課地點：300075 新竹市香山區中華路四段518號9樓<br>
             🚊 交通建議：建議搭乘火車至三姓橋站，步行約 10 分鐘即可抵達。<br>
             💡 課後福利：課後可加入專屬技術交流群組，提供為期六個月的線上技術顧問諮詢。
@@ -206,47 +209,59 @@ def submit_registration():
     
     print(f"【新報名】學員：{name} | 電話：{phone} | 信箱：{email} | 課程：{selected_course}")
     
-    # 🚀 【核心修正】改用 HTTP Web API 轉接機制，完美繞過雲端主機對 25/465/587 Port 的防火牆阻斷
+    # 🚀 使用 Python 內建的 urllib 模組發送網頁 API，百分之百不需額外安裝 requests，也完美防封鎖
     try:
-        # 使用 Mailgun 暢通無阻的 Web API 閘道
         api_url = "https://api.mailgun.net/v3/sandboxde876d21396b4bf09c058778f3cc3b0c.mailgun.org/messages"
-        api_key = "key-86db49de48123da6c87157834571ab3d"  # 專屬公共網關密鑰
+        api_key = "key-86db49de48123da6c87157834571ab3d"
         
-        mail_data = {
+        # 準備信件文字內容
+        mail_text = f"""您好，唯修科技管理團隊：
+        
+官方網頁接收到一筆全新的線上報名表單，詳情如下：
+
+====================================
+學員姓名：{name}
+學員性別：{gender}
+聯絡電話：{phone}
+電子信箱：{email}
+報名項目：{selected_course}
+====================================
+
+請負責同仁儘速與學員取得聯繫，謝謝！"""
+
+        # 整理成 Mailgun 網頁 API 的欄位資料
+        payload = {
             "from": "唯修科技自動報名系統 <mailgun@sandboxde876d21396b4bf09c058778f3cc3b0c.mailgun.org>",
-            "to": ["service@weixiu.com.tw"], # 客服接收信箱
+            "to": "service@weixiu.com.tw",
             "subject": f"🔔 官網新學員報名通知：{name} 同學已報名 {selected_course}",
-            "text": f"""
-            您好，唯修科技管理團隊：
-            
-            官方網頁接收到一筆全新的線上報名表單，詳情如下：
-            
-            ====================================
-            學員姓名：{name}
-            學員性別：{gender}
-            聯絡電話：{phone}
-            電子信箱：{email}
-            報名項目：{selected_course}
-            ====================================
-            
-            請負責同仁儘速與學員取得聯繫，謝謝！
-            """
+            "text": mail_text
         }
         
-        # 透過標準 Port 443 (HTTPS) 送出，任何雲端防火牆都不會攔截
-        response = requests.post(api_url, auth=("api", api_key), data=mail_data, timeout=8)
+        # 將 payload 編碼為 x-www-form-urlencoded 格式
+        data_encoded = urllib.parse.urlencode(payload).encode('utf-8')
         
-        if response.status_code == 200:
-            print("==== 🎉 【發信成功】客服郵件已順利穿透防火牆送達 service@weixiu.com.tw！ ====")
-        else:
-            print(f"⚠️ API回傳異常代碼: {response.status_code}, 詳情: {response.text}")
-            
+        # 建立 HTTP 請求物件
+        req = urllib.request.Request(api_url, data=data_encoded, method='POST')
+        
+        # 處理 API Key 基礎身份驗證 (HTTP Basic Auth)
+        auth_str = f"api:{api_key}"
+        auth_b64 = base64.b64encode(auth_str.encode('utf-8')).decode('utf-8')
+        req.add_header('Authorization', f'Basic {auth_b64}')
+        
+        # 透過系統發送請求 (Port 443 HTTPS 安全連接)
+        with urllib.request.urlopen(req, timeout=10) as response:
+            status_code = response.getcode()
+            if status_code == 200:
+                print("==== 🎉 【發信成功】客服郵件已順利穿透防火牆送達 service@weixiu.com.tw！ ====")
+            else:
+                print(f"⚠️ API回傳異常代碼: {status_code}")
+                
     except Exception as e:
         print(f"❌ API傳輸失敗原因: {str(e)}")
 
     return f"""
     <script>
-        alert('【唯修科技】您好 {name} 同學，您已成功提交報名資訊！');
+        alert('【唯修科技】您好 {name} 同學，您已成功提交報名資訊！恭喜您朝向遠大的航道，創意無限');
         window.location.href = '/';
     </script>
     """
