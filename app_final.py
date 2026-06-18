@@ -49,7 +49,7 @@ HTML_TEMPLATE = """
         .course-card { background: #f1f7fe; border: 1px solid #cedfeffa; padding: 20px; margin-bottom: 20px; border-radius: 8px; }
         .course-title { font-weight: bold; color: var(--primary-color); font-size: 18px; margin-bottom: 8px; }
         
-        /* 🎨 純 CSS 打造 3D 科技頭像徽章 - 100% 解決個人圖片未顯示問題 */
+        /* 🎨 純 CSS 打造 3D 科技頭像徽章 - 解決個人圖片未顯示問題 */
         .teacher-box { display: flex; gap: 20px; align-items: center; background: #fdfaf2; padding: 25px; border-radius: 8px; border: 1px dashed var(--accent-color); margin-top: 20px; }
         .tech-avatar { width: 90px; height: 90px; border-radius: 50%; background: linear-gradient(135deg, #1a4985, #2b3a4a); display: flex; flex-direction: column; align-items: center; justify-content: center; border: 3px solid var(--accent-color); box-shadow: 0 4px 10px rgba(0,0,0,0.15); flex-shrink: 0; color: white; }
         .tech-avatar .avatar-title { font-size: 10px; opacity: 0.8; font-weight: bold; letter-spacing: 1px; margin-bottom: -2px; }
@@ -180,9 +180,6 @@ HTML_TEMPLATE = """
                         <option value="2">3D列印後處理進階課程 (待開班)</option>
                     </select>
                 </div>
-                <div style="margin-top: 15px; font-size: 14px; color: #666;">
-                    * 點擊下方按鈕後，報名資訊將自動同步發送至客服信箱。
-                </div>
                 <button type="submit">確認送出報名資訊 ➔</button>
             </form>
         </div>
@@ -221,7 +218,7 @@ def submit_registration():
     
     print(f"【新報名】學員：{name} | 電話：{phone} | 信箱：{email} | 課程：{selected_course}")
     
-    # 🔒 100% 純內建 urllib 網路請求，完全不使用 requests，徹底破除 ModuleNotFoundError
+    # 🔒 100% 純內建 urllib 網路請求，完全不使用 requests，徹底破除 ModuleNotFoundError 與 NameError
     try:
         api_url = "https://api.mailgun.net/v3/sandboxde876d21396b4bf09c058778f3cc3b0c.mailgun.org/messages"
         api_key = "key-86db49de48123da6c87157834571ab3d"
