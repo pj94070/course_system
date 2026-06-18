@@ -4,13 +4,16 @@ from flask import Flask, request
 
 app = Flask(__name__)
 
-# 📊 唯修科技 - 網頁 HTML 模板
+# 📊 唯修科技 - 網頁 HTML 模板（已加入防快取機制）
 HTML_TEMPLATE = """
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     <title>唯修科技 WEIXIU TECHNOLOGY - 3D列印專業訓練課程報名</title>
     <style>
         :root {
@@ -210,21 +213,21 @@ def submit_registration():
     course_map = {"1": "3D列印基礎認識實務課程", "2": "3D列印後處理進階課程"}
     selected_course = course_map.get(course_id, "未知課程")
     
-    # 🚀 已成功綁定您建立的 Discord Webhook 網址
+    # 🚀 綁定您的 Discord Webhook 網址
     DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/1517080613822398625/uKiiRNp_3knea-qs92sxGQmCHVLrQI_UdZrlLbmWqBmJ5atzFQYl7DcasQxV5G3xfVo1"
     
-    # 📝 格式化推播卡片內容
+    # 📝 嚴格對齊 Discord Webhook 標準的 JSON 結構
     payload = {
         "embeds": [
             {
                 "title": "🔔 唯修科技 - 新學員線上登記登記通知",
-                "color": 1104926,  # 唯修品牌藍色邊條
+                "color": 1104926,
                 "fields": [
-                    {"name": "👤 學員姓名", "value": name, "inline": True},
-                    {"name": "🚻 性別", "value": gender, "inline": True},
-                    {"name": "📞 聯絡電話", "value": phone, "inline": True},
-                    {"name": "✉️ 電子信箱", "value": email, "inline": False},
-                    {"name": "📚 報名項目", "value": selected_course, "inline": False}
+                    {"name": "👤 學員姓名", "value": str(name), "inline": True},
+                    {"name": "🚻 性別", "value": str(gender), "inline": True},
+                    {"name": "📞 聯絡電話", "value": str(phone), "inline": True},
+                    {"name": "✉️ 電子信箱", "value": str(email), "inline": False},
+                    {"name": "📚 報名項目", "value": str(selected_course), "inline": False}
                 ],
                 "footer": {"text": "官網報名系統自動轉寄"}
             }
@@ -232,8 +235,10 @@ def submit_registration():
     }
     
     try:
-        print("▶️ [Discord Webhook] 正在將學員報名資料發射至 Discord...")
-        response = requests.post(DISCORD_WEBHOOK_URL, json=payload, timeout=10)
+        print("▶️ [Discord Webhook] 正在發送資料...")
+        # 明確指定 json 參數，並加上正確的 headers
+        headers = {"Content-Type": "application/json"}
+        response = requests.post(DISCORD_WEBHOOK_URL, json=payload, headers=headers, timeout=10)
         print(f"==== 🎉 Discord 伺服器回應狀態碼: {response.status_code} ====")
     except Exception as e:
         print(f"❌ Discord 傳輸異常: {str(e)}")
