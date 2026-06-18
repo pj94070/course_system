@@ -1,7 +1,5 @@
 import os
-import urllib.request
-import urllib.parse
-import base64
+import requests
 from flask import Flask, request
 
 app = Flask(__name__)
@@ -212,6 +210,7 @@ def submit_registration():
     course_map = {"1": "3D列印基礎認識實務課程", "2": "3D列印後處理進階課程"}
     selected_course = course_map.get(course_id, "未知課程")
     
+    # 修正：使用更穩定的 requests 搭配 HTTPBasicAuth 來傳遞 API Key
     try:
         api_url = "https://api.mailgun.net/v3/sandboxde876d21396b4bf09c058778f3cc3b0c.mailgun.org/messages"
         api_key = "key-86db49de48123da6c87157834571ab3d"
@@ -237,16 +236,11 @@ def submit_registration():
             "text": mail_text
         }
         
-        data_encoded = urllib.parse.urlencode(payload).encode('utf-8')
-        req = urllib.request.Request(api_url, data=data_encoded, method='POST')
-        
-        auth_str = f"api:{api_key}"
-        auth_b64 = base64.b64encode(auth_str.encode('utf-8')).decode('utf-8')
-        req.add_header('Authorization', f'Basic {auth_b64}')
-        
-        with urllib.request.urlopen(req, timeout=10) as response:
-            if response.getcode() == 200:
-                print("==== 🎉 【發信成功】 ====")
+        response = requests.post(api_url, auth=("api", api_key), data=payload, timeout=10)
+        if response.status_code == 200:
+            print("==== 🎉 【發信成功】 ====")
+        else:
+            print(f"❌ Mailgun 伺服器拒絕發信 ({response.status_code}): {response.text}")
                 
     except Exception as e:
         print(f"❌ 傳輸異常: {str(e)}")
