@@ -240,10 +240,12 @@ def submit_registration():
     }
     
     try:
-        headers = {"Content-Type": "application/json"}
-        requests.post(DISCORD_WEBHOOK_URL, json=payload, headers=headers, timeout=10)
+        response = requests.post(DISCORD_WEBHOOK_URL, json=payload, headers=headers, timeout=10)
+        if response.status_code not in [200, 204]:
+            print(f"❌ Discord 發送失敗，狀態碼: {response.status_code}")
+            # 視情況決定是否要在這裡 return 錯誤頁面給使用者
     except Exception as e:
-        print(f"❌ Discord 傳輸異常: {str(e)}")
+        print(f"❌ 傳輸異常: {str(e)}")
 
     return f"""
     <script>
