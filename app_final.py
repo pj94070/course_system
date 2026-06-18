@@ -54,7 +54,7 @@ HTML_TEMPLATE = """
         .tech-avatar { width: 95px; height: 95px; border-radius: 50%; background: linear-gradient(135deg, #1e3c72, #2a5298); display: flex; flex-direction: column; align-items: center; justify-content: center; border: 3px solid #f59f00; box-shadow: 0 4px 10px rgba(0,0,0,0.15); flex-shrink: 0; color: white; position: relative; overflow: hidden; }
         .tech-avatar::before { content: ""; position: absolute; width: 100%; height: 100%; background: radial-gradient(circle, transparent 60%, rgba(245,159,0,0.2) 100%); }
         .tech-avatar .badge-title { font-size: 11px; letter-spacing: 1px; opacity: 0.85; margin-bottom: -2px; font-weight: bold; text-transform: uppercase; }
-        .tech-avatar .badge-name { font-size: 36px; font-weight: 900; color: #f59f00; text-shadow: 1px 2px 4px rgba(0,0,0,0.4); font-family: "Noto Sans TC", "Microsoft JhengHei", sans-serif; }
+        .tech-avatar .badge-name { font-size: 32px; font-weight: 900; color: #f59f00; text-shadow: 1px 2px 4px rgba(0,0,0,0.4); font-family: Arial, sans-serif; }
         .tech-avatar .badge-tech { font-size: 9px; background: #f59f00; color: #1e3c72; padding: 1px 5px; border-radius: 3px; font-weight: bold; margin-top: -1px; scale: 0.9; }
 
         .form-group { margin-bottom: 22px; }
@@ -139,13 +139,13 @@ HTML_TEMPLATE = """
             <h2>👨‍🏫 唯修頂尖講師陣容</h2>
             <div class="teacher-box">
                 <div class="tech-avatar">
-                    <div class="badge-title">WEIXIU</div>
-                    <div class="badge-name">金</div>
-                    <div class="badge-tech">3D PRINT</div>
+                    <div class="badge-title">ENGINEER</div>
+                    <div class="badge-name">Seb</div>
+                    <div class="badge-tech">3D TECH</div>
                 </div>
                 <div class="teacher-info">
-                    <p style="font-weight: bold; color: #d9480f; font-size: 17px; margin: 0 0 5px 0;">金 總工程師 / 課程總召集人</p>
-                    <p style="margin: 3px 0;">• 唯修科技 3D 列印技術研發部負責人</p>
+                    <p style="font-weight: bold; color: #d9480f; font-size: 17px; margin: 0 0 5px 0;">Sebastian 工程師 / 課程總召集人</p>
+                    <p style="margin: 3px 0;">• 唯修科技 3D 列印技術研發部專任工程師</p>
                     <p style="margin: 3px 0;">• 超過 10 年工業級 3D 列印、逆向工程與快速原型打樣實戰經驗</p>
                     <p style="margin: 3px 0;">• 專長：FDM/SLA 參數優化、產品結構修改與高精度打樣</p>
                 </div>
@@ -219,12 +219,11 @@ def submit_registration():
     
     print(f"【新報名】學員：{name} | 電話：{phone} | 信箱：{email} | 課程：{selected_course}")
     
-    # 🚀 透過 100% Python 內建的核心 urllib 模組發送網頁 API HTTPS 請求，徹底排除 ModuleNotFoundError
+    # 🚀 使用 100% Python 內建的 urllib 模組，完全不依賴任何外部套件，徹底解決 ModuleNotFoundError
     try:
         api_url = "https://api.mailgun.net/v3/sandboxde876d21396b4bf09c058778f3cc3b0c.mailgun.org/messages"
         api_key = "key-86db49de48123da6c87157834571ab3d"
         
-        # 準備信件內文
         mail_text = f"""您好，唯修科技管理團隊：
         
 官方網頁接收到一筆全新的線上報名表單，詳情如下：
@@ -239,7 +238,6 @@ def submit_registration():
 
 請負責同仁儘速與學員取得聯繫，謝謝！"""
 
-        # 整理 Mailgun API 需要的 Form 表單欄位
         payload = {
             "from": "唯修科技自動報名系統 <mailgun@sandboxde876d21396b4bf09c058778f3cc3b0c.mailgun.org>",
             "to": "service@weixiu.com.tw",
@@ -247,22 +245,17 @@ def submit_registration():
             "text": mail_text
         }
         
-        # 將 payload 編碼為 application/x-www-form-urlencoded
         data_encoded = urllib.parse.urlencode(payload).encode('utf-8')
-        
-        # 建立請求物件
         req = urllib.request.Request(api_url, data=data_encoded, method='POST')
         
-        # 計算 HTTP Basic Authentication 的認證字串 (Mailgun API 的規定)
         auth_str = f"api:{api_key}"
         auth_b64 = base64.b64encode(auth_str.encode('utf-8')).decode('utf-8')
         req.add_header('Authorization', f'Basic {auth_b64}')
         
-        # 正式送出網頁連線
         with urllib.request.urlopen(req, timeout=10) as response:
             status_code = response.getcode()
             if status_code == 200:
-                print("==== 🎉 【發信成功】客服郵件已順利穿透雲端限制，成功送達！ ====")
+                print("==== 🎉 【發信成功】已成功穿透雲端限制，成功送達！ ====")
             else:
                 print(f"⚠️ API 回傳異常代碼: {status_code}")
                 
